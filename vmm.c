@@ -44,7 +44,14 @@ typedef struct {
 
 int fifo(int8_t** page_table, int num_pages, int prev_page,
          int fifo_frm, int num_frames, int clock) {
-    return -1;
+    int page = 0, i;
+    for(i = 0; i < num_pages; i++) {
+        // comparação logica terá valor true caso a primeira pagina da fila seja encontrada
+        if(page_table[i][PT_FRAMEID] == fifo_frm) { 
+            page = i;
+        }
+    }
+    return page;
 }
 
 int second_chance(int8_t** page_table, int num_pages, int prev_page,
@@ -70,7 +77,6 @@ int mfu(int8_t** page_table, int num_pages, int prev_page,
 int random_page(int8_t** page_table, int num_pages, int prev_page,
                 int fifo_frm, int num_frames, int clock) {
     int page = rand() % num_pages;
-    printf("Random");
     while (page_table[page][PT_MAPPED] == 0) // Encontra página mapeada
         page = rand() % num_pages;
     return page;
@@ -164,8 +170,7 @@ void run(int8_t **page_table, int num_pages, int *prev_page, int *fifo_frm,
         getchar();
         scanf("%c", &access_type);
         clock = ((i+1) % clock_freq) == 0;
-        printf("end virtual: %d\n",virt_addr);
-        printf("acess type: %c\n",access_type);
+
         faults += simulate(page_table, num_pages, prev_page, fifo_frm,
                            physical_memory, num_free_frames, num_frames, prev_free,
                            virt_addr, access_type, evict, clock);
@@ -198,7 +203,6 @@ int main(int argc, char **argv) {
     int num_pages;
     int num_frames;
     read_header(&num_pages, &num_frames);
-    printf("num pages: %d e num frames: %d\n",num_pages,num_frames);
     // Aponta para cada função que realmente roda a política de parse
     paging_policy_t policies[] = {
             {"fifo", *fifo},
